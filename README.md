@@ -51,26 +51,28 @@ $ cd dapp-oracle-poc
 $ npx ethereum-bridge -H localhost:9545 -a 1
 ```
 
+
 You must see an output like this:
 
 ```
 Please add this line to your contract constructor:
-
 OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
 ```
 
 Go to `contracts/provableAPI_0.5.sol`, press `ctl+f` and look for `Ethereum-bridge` and you must find this bloc of code:
+
 
 ```solidity
  if (getCodeSize(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475) > 0) { 
             OAR = OracleAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
             return true;
         }
-`̀``
+ ```       
+
 
 If the Oraclize contract address it's not the same please change it .
 
-## Step 3. Start the Webhook
+## Step 4. Start the Webhook
 
 ```
 $ node webhook.js
@@ -83,7 +85,25 @@ Localtunnel will give you and URL, go to `prometheus.sol` and change this line :
  provable_query("URL", "json(paste_here_new_Localtunnel_url).alerts[0].labels.alertname");
 ```
 
-## Step 4. Compile & Deploy the Smart Contract
+Now we have to configure `Alertmanager` to send alerts to our custom webhook .
+Example of `Alertmanager yaml config file` :
+
+```
+route:
+  receiver: "blockchain"
+  group_by: ['alertname']
+  group_wait:      15s
+  group_interval:  15s
+  repeat_interval: 1m
+
+receivers:
+- name: "blockchain"
+  webhook_configs:
+  - url: 'http://localhost:3000'
+    send_resolved: true
+```
+
+## Step 5. Compile & Deploy the Smart Contract
 
 
 ```
@@ -92,7 +112,7 @@ $ truffle compile
 $ truffle migrate development
 ```
 
-## Step 5. Verify that `Prometheus`, `Node-exporter` and `Alertmanager` are listening
+## Step 6. Verify that `Prometheus`, `Node-exporter` and `Alertmanager` are actifs
 
 1. **Prometheus service :** http://localhost:9090
 2. **Node Exporter :** http://localhost:9100
@@ -101,7 +121,7 @@ $ truffle migrate development
 > Make sure that there is one alert fired at least : you can verify this in `http://127.0.0.1:9093/#/alerts`
 
 
-## Step 6. Test the smartcontract 
+## Step 7. Test the smartcontract 
 
 ``̀
 $ cd dapp-oracle-poc 
